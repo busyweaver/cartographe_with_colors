@@ -22,15 +22,27 @@ document.getElementById("btn-graph").onclick = function () {
   const graph = document.getElementById("textarea-graph").value;
   const separator = document.getElementById("separator").value;
   const file = graph.split("\n");
-  const nodes = {};
+    const nodes = {};
+    if (file[0] == "1")
+    {
+        // file with colors
+        const color = 2;
+    }
+    else
+    {
+        const color = 0;
+    }
   for (const line of file) {
     const column = line.split(separator);
-    if (column.length == 3) {
-      const node = column[0];
-      nodes[node] = { latitude: column[1], longitude: column[2] };
+    if (column.length == 3 + color) {
+        const node = column[0];
+        if (color == 0)
+            nodes[node] = { latitude: column[1], longitude: column[2], color : "blue", size : 0 };
+        else
+            nodes[node] = { latitude: column[1], longitude: column[2], color : column[3], size :  column[3]};
     }
     if (document.getElementById("links").checked == true) {
-      if (column.length == 2) {
+      if (column.length == 2 + color) {
         const source = [nodes[column[0]].latitude, nodes[column[0]].longitude];
         const target = [nodes[column[1]].latitude, nodes[column[1]].longitude];
         const polyline = [source, target];
@@ -64,7 +76,8 @@ function displayNodes(nodes) {
       [nodes[node].latitude, nodes[node].longitude],
       {
         renderer: myRenderer,
-        radius: 5,
+          radius: 5 + 5*nodes[node].size,
+          color: nodes[node].color,
       },
     ).addTo(map).bindTooltip(node);
   }
