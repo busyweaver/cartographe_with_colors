@@ -23,28 +23,26 @@ document.getElementById("btn-graph").onclick = function () {
   const separator = document.getElementById("separator").value;
   const file = graph.split("\n");
     const nodes = {};
+    color = 0;
     if (file[0] == "1")
     {
         // file with colors
-        const color = 2;
-    }
-    else
-    {
-        const color = 0;
+        color = 2;
+        file.shift();
     }
   for (const line of file) {
-    const column = line.split(separator);
-    if (column.length == 3 + color) {
+      const column = line.split(separator);
+      if (column.length == 3 + color) {
         const node = column[0];
         if (color == 0)
             nodes[node] = { latitude: column[1], longitude: column[2], color : "blue", size : 0 };
         else
-            nodes[node] = { latitude: column[1], longitude: column[2], color : column[3], size :  column[3]};
+            nodes[node] = { latitude: column[1], longitude: column[2], color : column[3], size :  column[4]};
     }
     if (document.getElementById("links").checked == true) {
       if (column.length == 2 + color) {
         const source = [nodes[column[0]].latitude, nodes[column[0]].longitude];
-        const target = [nodes[column[1]].latitude, nodes[column[1]].longitude];
+          const target = [nodes[column[1]].latitude, nodes[column[1]].longitude];
         const polyline = [source, target];
         const distance = haversine_distance(
           source[0],
@@ -52,17 +50,23 @@ document.getElementById("btn-graph").onclick = function () {
           target[0],
           target[1],
         );
-        L.polyline(polyline, { color: "blue" }).addTo(map).bindTooltip(
+          if(color != 0)
+          L.polyline(polyline, { color: "blue ", weight : 1 + 3*column[3]}).addTo(map).bindTooltip(
           `${distance.toFixed(2)} m`,
           { sticky: true },
-        );
+          );
+          else
+              L.polyline(polyline, { color: "blue "}).addTo(map).bindTooltip(
+                  `${distance.toFixed(2)} m`,
+                  { sticky: true },
+              );
       }
     }
   }
   if (document.getElementById("nodes").checked == true) {
     displayNodes(nodes);
   }
-  const first = nodes[Object.keys(nodes)[0]];
+    const first = nodes[Object.keys(nodes)[0]];
   const last = nodes[Object.keys(nodes)[Object.keys(nodes).length - 1]];
   map.fitBounds([[first.latitude, first.longitude], [
     last.latitude,
@@ -71,13 +75,15 @@ document.getElementById("btn-graph").onclick = function () {
 };
 
 function displayNodes(nodes) {
-  for (const node in nodes) {
+    for (const node in nodes) {
+        //document.write(nodes[node].size);
     L.circleMarker(
       [nodes[node].latitude, nodes[node].longitude],
       {
-        renderer: myRenderer,
-          radius: 5 + 5*nodes[node].size,
+          renderer: myRenderer,
+          radius: 5+ 5*nodes[node].size,
           color: nodes[node].color,
+          //opacity : nodes[node].size
       },
     ).addTo(map).bindTooltip(node);
   }
